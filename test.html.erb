@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+    <h1>ミニチュアシュナウザーとゴーヤ</h1>
+
+   <% require 'pg' %>
+
+    <% connection = PG::connect(dbname: "goya") %>
+    <% connection.internal_encoding = "UTF-8" %>
+
+    <!-- formに囲まれている内容を、indicate.rb(cgi)に送信しますという記述 -->
+    <form action='indicate.cgi' method='POST'>
+      下記に文字を入力してください<br><br>
+      <!-- このinputに入力された情報が、submitの送信ボタンでデータとして送られる -->
+      <!-- name='input'は送られた先の目印となる情報 -->
+      <!-- type="text"は入力ができるフォームを作成するという記述 -->
+      <input type="text"  name='input' ><br>
+      <input type="submit" name="送信" >
+    </form>
+    
+    <% result1 = connection.exec("select * from crops where give_for != '自家消費';") %>
+    <% date = [] %>
+
+    <% result1.each do |record| %>
+      <%  date << "日付：#{record["date"]} 譲渡先：#{record["give_for"]}　ゴーヤの大きさ：#{record["length"]} ゴーヤの重さ：#{record["weight"]} ゴーヤの質：#{record["quality"]}" %>
+    <% end %>
+    
+    <form action="goya.cgi" method="POST">
+       下記のボタンを押すと、譲渡先が自家消費ではないものの情報ページに飛びます<br><br>
+       <!-- valueには、送りたいデータを代入する -->
+       <!-- name="goya"を、情報の目印とする -->
+      <input type="text" name="goya" value="<%= date.join(' ') %>">
+      <input type="submit" name="送信" >
+    </form>    
+    
+    <% result2 = connection.exec("select * from crops where quality = false;") %>
+    <% date = [] %>
+
+    <% result2.each do |record| %>
+      <%  date << "日付：#{record["date"]} ゴーヤの質：#{record["quality"]} 譲渡先：#{record["give_for"]}　ゴーヤの大きさ：#{record["length"]} ゴーヤの重さ：#{record["weight"]} " %>
+    <% end %>
+    
+    <form action="goya.cgi" method="POST">
+       下記のボタンを押すと、品質が悪いゴーヤの情報ページに飛びます<br><br>
+       <!-- valueには、送りたいデータを代入する -->
+       <!-- name="goya"を、情報の目印とする -->
+      <input type="text" name="goya" value="<%= date.join(' ') %>">
+      <input type="submit" name="送信" >
+    </form>    
+    
+  </body>
+</html>
